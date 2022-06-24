@@ -1,9 +1,10 @@
-import pyglet, sys
+import pyglet
 from PyQt6 import QtCore
+from PyQt6.QtWidgets import QWidget
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget as OpenGLWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView
-from PyQt6.QtWidgets import QApplication
 from PyQt6.QtWebChannel import QWebChannel
+from PyQt6.QtWidgets import QVBoxLayout
 from pyglet.gl import *
 
 class PygletPage(OpenGLWidget):
@@ -38,31 +39,42 @@ class PygletPage(OpenGLWidget):
         self.projection = pyglet.window.Projection2D()
         self.projection.set(w, h, w, h)
 
-class HTMLPage(QWebEngineView):
+
+class HTMLPage(QWidget):
         def __init__(self, html):
+            super().__init__()
+
             self.html = None
-            self.app = QApplication(sys.argv)
-            QWebEngineView.__init__(self)
-            self.loadFinished.connect(self._loadFinished)
-            self.webchannel = QWebChannel(self)
-            self.setHtml(html)
 
-            self.page().setWebChannel(self.webchannel)
-            self.webchannel.registerObject('Radium', self)
+            class View(QWebEngineView):
+                def __init__(self, parent=None):
+                    super().__init__(parent)
+                    
+                @QtCore.pyqtSlot(str)
+                def run(self, what):
+                    exec(what)
+                
+            self.view = View()
+            vbox = QVBoxLayout(self)
+            self.view.setHtml(html)
 
-            while self.html is None:
-                self.app.processEvents(QtCore.QEventLoop.ExcludeUserInputEvents | QtCore.QEventLoop.ExcludeSocketNotifiers | QtCore.QEventLoop.WaitForMoreEvents)
-            self.app.quit()
+            vbox.addWidget(self.view)
+
+            self.view.loadFinished.connect(self._loadFinished)
+            self.webchannel = QWebChannel(self.view)
+            self.view.setHtml(html)
+
+            self.view.page().setWebChannel(self.webchannel)
+            self.webchannel.registerObject('Radium', self.view)
+
+            self.setLayout(vbox)
+            self.show()
 
         def _callable(self, data):
             self.html = data
 
         def _loadFinished(self, result):
-            self.page().toHtml(self._callable)
-        
-        @QtCore.pyqtSlot(str)
-        def _callback(self, code):
-            exec(code)
+            self.view.page().toHtml(self._callable)
 
         def run_js(self, code):
-            self.page().runJavaScript(code)
+            self.view.page().runJavaScript(code)
