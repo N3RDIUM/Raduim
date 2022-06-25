@@ -1,6 +1,6 @@
 from PyQt6 import QtCore, QtGui, QtWidgets
 from PyQt6.QtWidgets import QVBoxLayout
-from _internal.splash import Splash
+from _internal.terminal import Terminal
 
 class Ui_MainWindow(object):
     def __init__(self):
@@ -9,7 +9,7 @@ class Ui_MainWindow(object):
         self.screens = {}
         self.current = None
 
-        self.splash = Splash()
+        self.splash = Terminal()
 
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("Radium")

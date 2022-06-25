@@ -1,10 +1,12 @@
+from curses import KEY_ENTER
 import pyglet
 from PyQt6 import QtCore
-from PyQt6.QtWidgets import QWidget
+from PyQt6.QtWidgets import *
 from PyQt6.QtOpenGLWidgets import QOpenGLWidget as OpenGLWidget
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWebChannel import QWebChannel
 from PyQt6.QtWidgets import QVBoxLayout
+from PyQt6.QtGui import *
 from pyglet.gl import *
 
 class PygletPage(OpenGLWidget):
@@ -78,3 +80,27 @@ class HTMLPage(QWidget):
 
         def run_js(self, code):
             self.view.page().runJavaScript(code)
+
+class Terminal(QTextEdit):
+    def __init__(self, text="", defaultInput=">"):
+        super().__init__()
+        self.text = text + "\n" + defaultInput + " "
+        self.input = defaultInput
+        self.quickedit = True
+
+        self.append(self.text)
+
+    def setInput(self, input):
+        self.input = "\n" + input  + " "
+
+    def keyPressEvent(self, event):
+        if self.quickedit:
+            if event.key() in (16777220, 43):
+                self.append("")
+            else:
+                if event.key() == 16777235:
+                    pass
+                elif event.key() == 16777237:
+                    pass
+                else:
+                    super().keyPressEvent(event)
