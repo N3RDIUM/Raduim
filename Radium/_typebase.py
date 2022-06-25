@@ -87,16 +87,35 @@ class Terminal(QTextEdit):
         self.text = text + "\n" + defaultInput + " "
         self.input = defaultInput
         self.quickedit = True
+        self.inputs = []
 
         self.append(self.text)
 
     def setInput(self, input):
         self.input = "\n" + input  + " "
 
+    def _print(self, text):
+        self.append(text)
+
+    def _acceptControl(self):
+        self._print(self.input + " ")
+
+    def _acceptCommand(self):
+        text = self.textCursor().block().text()
+        text = text.replace(self.input + " ", "")
+        self.inputs.append(text)
+        try:
+            self.quickedit = False
+            self.callback(text)
+            self.quickedit = True
+        except NameError:
+            pass
+        self._acceptControl()
+
     def keyPressEvent(self, event):
         if self.quickedit:
             if event.key() in (16777220, 43):
-                self.append("")
+                self._acceptCommand()
             else:
                 if event.key() == 16777235:
                     pass
