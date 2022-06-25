@@ -97,8 +97,13 @@ class Terminal(QTextEdit):
     def _print(self, text):
         self.append(text)
 
+    def setCursorPosition(self):
+        cursor = self.textCursor()
+        cursor.setPosition(self.document().characterCount() - 1)
+
     def _acceptControl(self):
         self._print(self.input + " ")
+        self.setCursorPosition()
 
     def _acceptCommand(self):
         text = self.textCursor().block().text()
@@ -114,6 +119,7 @@ class Terminal(QTextEdit):
 
     def keyPressEvent(self, event):
         if self.quickedit:
+            self.setCursorPosition()
             if event.key() in (16777220, 43):
                 self._acceptCommand()
             else:
